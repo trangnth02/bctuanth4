@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIM Group | DTO Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-light: #F8FAFB;
+            --sidebar-bg: #FFFFFF;
+            --card-bg: #FFFFFF;
+            --accent: #006341; 
+            --accent-bright: #008f5d;
+            --text-main: #1A202C;
+            --text-muted: #718096;
+            --border: #E2E8F0;
+            --radius-lg: 24px;
+            --transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            --status-done: #059669;
+            --status-done-bg: #ECFDF5;
+            --status-progress: #D97706;
+            --status-progress-bg: #FFFBEB;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: var(--bg-light);
+            background-image: radial-gradient(circle at 80% 20%, rgba(0, 99, 65, 0.05) 0%, transparent 40%);
+            color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden;
+        }
+
+        .sidebar { width: 320px; padding: 40px 24px; background: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; box-shadow: 4px 0 15px rgba(0,0,0,0.02); }
+        .logo { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 1.00rem; letter-spacing: 1.6px; margin-bottom: 50px; display: flex; align-items: center; gap: 12px; color: var(--accent); }
+        .logo-box { width: 35px; height: 35px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0, 99, 65, 0.2); }
+
+        .nav-group { overflow-y: auto; flex-grow: 1; padding-right: 5px; }
+        .nav-btn { padding: 14px 18px; border-radius: 16px; cursor: pointer; transition: var(--transition); color: var(--text-muted); font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; text-transform: uppercase; }
+        .nav-btn:hover { background: #F1F5F9; color: var(--text-main); }
+        .nav-btn.active { background: #F0FDF4; color: var(--accent); border: 1px solid rgba(0, 99, 65, 0.1); }
+
+        .main { flex-grow: 1; padding: 50px 60px; overflow-y: auto; }
+        .header { margin-bottom: 40px; }
+        .label { font-family: 'Montserrat', sans-serif; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 4px; color: var(--accent); font-weight: 700; margin-bottom: 12px; display: block; opacity: 0.8; }
+        .project-title-wrapper { display: flex; align-items: center; gap: 20px; }
+        .project-number { font-family: 'Montserrat', sans-serif; font-size: 4rem; font-weight: 800; color: transparent; -webkit-text-stroke: 1.5px rgba(0, 99, 65, 0.1); line-height: 1; }
+        h1#tab-title { font-family: 'Montserrat', sans-serif; font-size: 2.8rem; font-weight: 800; margin: 0; letter-spacing: -1px; color: #2D3748; }
+
+        .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 25px; max-width: 1400px; }
+        .card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 30px; border: 1px solid var(--border); transition: var(--transition); grid-column: span 4; box-shadow: var(--shadow); }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent-bright); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08); }
+        .card-large { grid-column: span 8; }
+        .card-full { grid-column: span 12; }
+        .card-title { font-family: 'Montserrat', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 20px; color: var(--accent); display: block; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #F1F5F9; padding-bottom: 10px; }
+
+        .desc { font-size: 0.9rem; line-height: 1.6; color: #4A5568; margin-bottom: 15px; white-space: pre-line; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table td { padding: 14px 8px; border-bottom: 1px solid #F1F5F9; font-size: 0.88rem; vertical-align: top; color: #2D3748; }
+        
+        .status { font-family: 'Montserrat', sans-serif; font-size: 0.65rem; font-weight: 800; padding: 5px 12px; border-radius: 8px; text-transform: uppercase; white-space: normal; display: inline-block; line-height: 1.2; }
+        .status-done { color: var(--status-done); background: var(--status-done-bg); }
+        .status-progress { color: var(--status-progress); background: var(--status-progress-bg); }
+
+        .plan-box { background: #F8FAFB; padding: 20px; border-radius: 18px; margin-top: 10px; border-left: 5px solid var(--accent); font-size: 0.88rem; line-height: 1.6; color: #4A5568; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); white-space: pre-line; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeInUp 0.5s ease forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo"><div class="logo-box"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg></div> BIM GROUP | DTO</div>
+        <div class="nav-group">
+            <div class="nav-btn active" onclick="showTab(event, 'sap', '01')">01. SAP-ERP <span>●</span></div>
+            <div class="nav-btn" onclick="showTab(event, 'cks', '02')">02. CHỮ KÝ SỐ <span>●</span></div>
+            <div class="nav-btn" onclick="showTab(event, 'prop', '03')">03. PROPTRADE <span>●</span></div>
+            <div class="nav-btn" onclick="showTab(event, 'data', '04')">04. DATA ROOM <span>●</span></div>
+            <div class="nav-btn" onclick="showTab(event, 'plat', '05')">05. DATA PLATFORM <span>●</span></div>
+            <div class="nav-btn" onclick="showTab(event, 'ai', '06')">06. AI <span>●</span></div>
+            <div class="nav-btn" onclick="showTab(event, 'conn', '07')">07. BIM CONNECT <span>●</span></div>
+            <div class="nav-btn" onclick="showTab(event, 'crm', '08')">08. CRM <span>●</span></div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="header">
+            <span class="label">Tuần 20/4/26 - 24/4/26</span>
+            <div class="project-title-wrapper">
+                <div id="project-num" class="project-number">01</div>
+                <h1 id="tab-title">SAP-ERP</h1>
+            </div>
+        </div>
+
+        <div id="sap" class="tab-content active">
+            <div class="grid">
+                <div class="card card-large">
+                    <span class="card-title">Chi tiết công việc</span>
+                    <table class="data-table">
+                        <tr>
+                            <td>Hỗ trợ tổ dự án trong quá trình làm việc với vendor</td>
+                            <td style="text-align:right"><span class="status status-done">Đã hỗ trợ</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <span class="card-title">Kế hoạch tuần tiếp theo</span>
+                    <div class="plan-box">Tiếp tục hỗ trợ dự án</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="cks" class="tab-content">
+            <div class="grid">
+                <div class="card card-large">
+                    <span class="card-title">Chi tiết công việc</span>
+                    <table class="data-table">
+                        <tr>
+                            <td>Giai đoan 1: Giải ngân trực tuyến với ngân hàng. BLĐ ký số trên hệ thống iBanking của Ngân hàng. Hoàn thành thủ tục, đăng ký chữ ký số cho 11 công ty và BLĐ, các CBLĐ được ủy quyền trong từng công ty</td>
+                            <td style="text-align:right"><span class="status status-progress">Đã nhắc lại trợ lý các sếp, Chờ các sếp kích hoạt CKS</span></td>
+                        </tr>
+                        <tr>
+                            <td>Giai đoạn 2: Thực hiện thí điểm ký số giao dịch TMBĐS - Dự án Lakeside Residences. Ký số trên hệ thống nội bộ của BIM (PM BDS), Xác thực ký số trên app Nhà cung cấp. Tích hợp hệ thống - phiên bản demo</td>
+                            <td style="text-align:right"><span class="status status-done">Đã hoàn thành</span></td>
+                        </tr>
+                        <tr>
+                            <td>Xây dựng tài liệu hướng dẫn CBNV & Khách hàng</td>
+                            <td style="text-align:right"><span class="status status-done">Đã hoàn thành</span></td>
+                        </tr>
+                        <tr>
+                            <td>Trình BLĐ phương án mua sắm CKS</td>
+                            <td style="text-align:right"><span class="status status-done">Đã hoàn thành</span></td>
+                        </tr>
+                        <tr>
+                            <td>Đăng ký chữ ký số với NCC</td>
+                            <td style="text-align:right"><span class="status status-progress">Đang thực hiện</span></td>
+                        </tr>
+                        <tr>
+                            <td>Xây dựng kế hoạch truyền thông tới đại lý và khách hàng</td>
+                            <td style="text-align:right"><span class="status status-progress">Đang thực hiện</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <span class="card-title">Kế hoạch tuần tiếp theo</span>
+                    <div class="plan-box">- Tích hợp chữ ký số thực được cấp bởi nhà cung cấp và thực hiện trên môi trường thật
+- Hướng dẫn P. QTGD và Nhân sự được ủy quyền ký số
+- P. Vật tư hoàn thiện thủ tục hợp đồng với đối tác
+- Đã thông báo với NCC v/v đăng ký CKS sau khi tờ trình PA mua sắm được BLĐ PD. Tiếp tục nhờ NCC cấp trước CKS trong lúc hoàn thành hợp đồng
+- Tiếp tục phối hợp với Khối TMBĐS chuẩn bị nội dung truyền thông</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="prop" class="tab-content">
+            <div class="grid">
+                <div class="card card-large">
+                    <span class="card-title">Chi tiết công việc</span>
+                    <table class="data-table">
+                        <tr>
+                            <td>Vendor gửi các màn hình chi tiết theo phương án đã chọn, để KD review và đưa ra comment</td>
+                            <td style="text-align:right"><span class="status status-done">Đã gửi chi tiết phương án màn hình cho KD</span></td>
+                        </tr>
+                        <tr>
+                            <td>Tích hợp môi trường dev. Đang tích hợp đồng bộ dữ liệu giữa Proptrade và BĐS</td>
+                            <td style="text-align:right"><span class="status status-progress">Đang tích hợp</span></td>
+                        </tr>
+                        <tr>
+                            <td>Chốt BRD, chốt phần dashboard. Đã gửi 1 bản BRD Dashboard, đang xử lý comment từ phía KD</td>
+                            <td style="text-align:right"><span class="status status-progress">Đang xử lý comment</span></td>
+                        </tr>
+                        <tr>
+                            <td>Coding</td>
+                            <td style="text-align:right"><span class="status status-progress">Đang code</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <span class="card-title">Kế hoạch tuần tiếp theo</span>
+                    <div class="plan-box">- Gửi thêm màn hình liên quan dashboard
+- Tiếp tục Tích hợp môi trường dev
+- Chốt BRD, chốt phần dashboard và màn hình chi tiết dashboard
+- Tiếp tục coding</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="data" class="tab-content">
+            <div class="grid">
+                <div class="card card-large">
+                    <span class="card-title">Mô tả & Công việc</span>
+                    <p class="desc">Xây dựng hệ thống phần mềm DataRoom nội bộ phục vụ việc lưu trữ, khai thác tài liệu. Với các mục tiêu như sau:
+- Quản lý thống nhất tài liệu điện tử + định danh bản cứng
+- Vận hành theo quy trình: nhập kho -> Lưu trữ -> mượn -> trả có phê duyệt và ghi nhận đầy đủ
+- Tăng tính tuân thủ (audit, báo cáo, kiểm soát quyền)</p>
+                    <table class="data-table">
+                        <tr>
+                            <td>Xây dựng danh mục tiêu chí đánh giá, rating NCC</td>
+                            <td style="text-align:right"><span class="status status-done">Đã chốt các tiêu chí cùng trọng số cụ thể</span></td>
+                        </tr>
+                        <tr>
+                            <td>Lên PR, đang tiếp tục trao đổi, đàm phán với NCC hiện tại (Fanxipan) cùng phòng Vật tư</td>
+                            <td style="text-align:right"><span class="status status-progress">Đang thực hiện</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <span class="card-title">Kế hoạch tuần tiếp theo</span>
+                    <div class="plan-box">Liên hệ các NCC lấy phương án, hồ sơ năng lực, báo giá (Phối hợp cùng đội Vật tư) và dựa vào cac tiêu chí đưa ra để chấm điểm công tâm, sau đó sẽ trình chọn NCC</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="plat" class="tab-content">
+            <div class="grid">
+                <div class="card card-large">
+                    <span class="card-title">Chi tiết công việc</span>
+                    <table class="data-table">
+                        <tr>
+                            <td>Review và chấm điểm proposal của các vendor cung cấp giải pháp Data Platform: Raffles, Katalyst, GapV, FSS</td>
+                            <td style="text-align:right"><span class="status status-progress">Đang thực hiện</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <span class="card-title">Kế hoạch tuần tiếp theo</span>
+                    <div class="plan-box">-Sáng 28/4 sẽ gửi lại bản đề xuất Vendor.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ai" class="tab-content">
+            <div class="grid">
+                <div class="card card-large">
+                    <span class="card-title">Chi tiết công việc</span>
+                    <table class="data-table">
+                        <tr>
+                            <td>Khởi động nhóm chat trên Teams (AI Group) dành cho các CBQL và người dùng cốt lõi (key user) tại các phòng ban. Hiện đã có 56 CBQL tham gia. Chia sẻ các nội dung thử nghiệm và hướng dẫn chi tiết sử dụng AI xử lý công việc chuyên môn hàng ngày. Tiếp nhận đề bài cần hỗ trợ thử nghiệm AI từ các BP. Báo cáo tuần: Hỗ trợ Khối Xây dựng, Nhân sự, Pháp chế tạo báo cáo trong ~5 phút. Phân bổ nhân sự: ~300 nhân sự theo dự án/pháp nhân trong 15 phút. Hỗ trợ và hướng dẫn Khối xây dựng dùng AI chuyển 66 trang đặc tả kỹ thuật dạng PDF → Excel để lên cơ sở dữ liệu & dịch trong 20 phút. Thử nghiệm, lên nội dung hướng dẫn các BP v/v sử dụng AI đọc Hợp đồng: Đọc ~100 trang, nhận diện rủi ro & đàm phán trong 5 phút</td>
+                            <td style="text-align:right"><span class="status status-progress">Đang thực hiện</span></td>
+                        </tr>
+                        <tr>
+                            <td>Hệ thống AI nội bộ: Quản lý thầu, Hợp đồng và Thanh quyết toán. Đã làm việc với 02 đối tác: BnK và CMC. Đang thu thập tài liệu mẫu hồ sơ thầu để gửi đối tác kiểm tra mức độ tin cậy của Hệ thống AI. Đối tác FDX: Đang chờ gửi lại phương án báo giá bóc tách chi tiết</td>
+                            <td style="text-align:right"><span class="status status-progress">Đang thực hiện</span></td>
+                        </tr>
+                        <tr>
+                            <td>Xây dựng tài liệu hướng dẫn, lên phương án tổ chức chương trình đào tạo sử dụng AI cho Cán bộ Lãnh đạo (phối hợp với P. Đào tạo)</td>
+                            <td style="text-align:right"><span class="status status-progress">Đang thực hiện</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <span class="card-title">Kế hoạch tuần tiếp theo</span>
+                    <div class="plan-box">Tiếp tục duy trì đều đặn hàng ngày để tuyên truyền ứng dụng AI đi sâu xử lý từng công việc chuyên môn; và hướng dẫn các CBQL, key user thực hiện. Đang chờ Phòng Thầu gửi tài liệu mẫu</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="conn" class="tab-content">
+            <div class="grid">
+                <div class="card card-large">
+                    <span class="card-title">Chi tiết công việc</span>
+                    <table class="data-table">
+                        <tr>
+                            <td>Xử lý các request từ key users: + Cấp quyền, xóa người dùng các dự án: + Thay đổi thông tin hóa đơn</td>
+                            <td style="text-align:right"><span class="status status-done">Đã hoàn thành</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <span class="card-title">Kế hoạch tuần tiếp theo</span>
+                    <div class="plan-box">- TIếp tục Hỗ trợ vận hành hệ thống, xử lý các request từ key users</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="crm" class="tab-content">
+            <div class="grid">
+                <div class="card card-large">
+                    <span class="card-title">Mô tả & Công việc</span>
+                    <p class="desc">Xây dựng CRM lưu trữ thông tin từ Lead (đăng ký thông tin) >> Khách hàng. Quản lý toàn diện vòng đời khách hàng tại các sản phẩm / dịch vụ của BIM. Áp dụng trước cho Khối Thương mại Bất động sản.
+Tối ưu hóa, tự động hóa quy trình bán hàng để nâng cao giá trị vòng đời của khách hàng xuyên suốt hành trình tại BIM</p>
+                    <table class="data-table">
+                        <tr>
+                            <td>Đang rà soát các nội dung cùng Ban CNTT về yêu cầu nghiệp vụ chuyên môn của Khối TMBĐS. Thống nhất phương án: Tìm hiểu kỹ giải pháp từ đối tác đã có sản phẩm, kinh nghiệm để đề xuất BLĐ</td>
+                            <td style="text-align:right"><span class="status status-progress">Đang thực hiện</span></td>
+                        </tr>
+                        <tr>
+                            <td>Làm rõ yêu cầu, số lượng user để gửi Salesforce lên báo giá trong tuần tới.</td>
+                            <td style="text-align:right"><span class="status status-progress">Đang thực hiện</span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card">
+                    <span class="card-title">Kế hoạch tuần tiếp theo</span>
+                    <div class="plan-box">Phối hợp với vendor còn lại (Smart OSC - Zoho) để demo với Khối TMBĐS, BIM Hos) sau 5/5/2026</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function showTab(event, tabId, num) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            const btnText = event.currentTarget.innerText.split('.')[1] || event.currentTarget.innerText;
+            document.getElementById('tab-title').innerText = btnText.replace('●', '').trim();
+            document.getElementById('project-num').innerText = num;
+        }
+    </script>
+</body>
+</html>
